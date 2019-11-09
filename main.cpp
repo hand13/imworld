@@ -11,6 +11,7 @@
 #include "image.h"
 #include "util.h"
 #include <windows.h>
+#define PI 3.14159
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
@@ -22,6 +23,21 @@ void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+void DrawTs(float b) {
+  ImDrawList * draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 p = ImGui::GetCursorScreenPos();
+  float x = p.x + 400.0f, y = p.y + 100.0f;
+  static ImVec4 colf = ImVec4(1.0f, 0.1f, 0.4f, 1.0f);
+  const ImU32 col = ImColor(colf);
+  ImVec2 ps[200];
+  float minRatio =  2.0f * PI * b /400.0f;
+  for(int i =0;i<200;i++) {
+    float ceta = minRatio * i;
+    ps[i].x = x +  4.0f * ceta * std::sin(ceta);
+    ps[i].y = y +  4.0f * ceta * std::cos(ceta);
+  }
+  draw_list->AddPolyline(ps,200,col,false,0.0f);
+}
 
 int main(int, char**)
 {
@@ -86,16 +102,9 @@ int main(int, char**)
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::BeginChild("Scrolling");
-            for(int i =0;i < pes.size();i++) {
-           char temp[300];
-             WideCharToMultiByte(CP_ACP, 0, pes[i].szExeFile, -1, temp, sizeof(temp), NULL, NULL);
-              ImGui::Text("the ps is %s,the pid is %ld",temp,pes[i].th32ProcessID);
-            }
-            ImGui::EndChild();
             ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderFloat("float", &f, 0.0f, 10.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
             if (ImGui::Button("do file")) {
@@ -107,6 +116,7 @@ int main(int, char**)
             ImGui::SameLine();
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            DrawTs(f);
             ImGui::End();
         }
 
