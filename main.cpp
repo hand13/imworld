@@ -6,11 +6,9 @@
 #include <dinput.h>
 #include <tchar.h>
 #include <string>
-#include "mylua.h"
 #include <fmt/format.h>
-#include "image.h"
-#include "util.h"
 #include <windows.h>
+#include "mypaint.h"
 #define PI 3.14159
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
@@ -23,21 +21,6 @@ void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-void DrawTs(float b) {
-  ImDrawList * draw_list = ImGui::GetWindowDrawList();
-  const ImVec2 p = ImGui::GetCursorScreenPos();
-  float x = p.x + 400.0f, y = p.y + 100.0f;
-  static ImVec4 colf = ImVec4(1.0f, 0.1f, 0.4f, 1.0f);
-  const ImU32 col = ImColor(colf);
-  ImVec2 ps[200];
-  float minRatio =  2.0f * PI * b /400.0f;
-  for(int i =0;i<200;i++) {
-    float ceta = minRatio * i;
-    ps[i].x = x +  4.0f * ceta * std::sin(ceta);
-    ps[i].y = y +  4.0f * ceta * std::cos(ceta);
-  }
-  draw_list->AddPolyline(ps,200,col,false,0.0f);
-}
 
 int main(int, char**)
 {
@@ -47,23 +30,15 @@ int main(int, char**)
     return -1;
   }
 
-  auto pes = getpe32s();
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
-    lua_machine machine;
     ::RegisterClassEx(&wc);
     HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("first"), WS_OVERLAPPEDWINDOW, 100, 100, 800, 600, NULL, NULL, wc.hInstance, NULL);
-
     if (!CreateDeviceD3D(hwnd))
     {
         CleanupDeviceD3D();
         ::UnregisterClass(wc.lpszClassName, wc.hInstance);
         return 1;
     }
-    int my_image_width = 0;
-    int my_image_height = 0;
-    ID3D11ShaderResourceView * my_texture = NULL;
-    bool ret = LoadTextureFromFile("../test.jpg",g_pd3dDevice, &my_texture, &my_image_width, &my_image_height);
-    IM_ASSERT(ret);
 
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
@@ -77,7 +52,6 @@ int main(int, char**)
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
-    bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     MSG msg;
@@ -97,36 +71,8 @@ int main(int, char**)
         ImGui::NewFrame();
 
         {
-            static float f = 0.0f;
-
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 10.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("do file")) {
-              machine.do_file(const_cast<char *>("test.lua"));
-            }
-            ImGui::Text("pointer = %p", my_texture);
-            ImGui::Text("size = %d x %d", my_image_width, my_image_height);
-            //ImGui::Image((void*)my_texture, ImVec2(my_image_width, my_image_height));
-            ImGui::SameLine();
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            DrawTs(f);
-            ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
+            drawMain();
             ImGui::End();
         }
 
