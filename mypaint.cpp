@@ -6,11 +6,13 @@
 #include <memory>
 #include "util.h"
 #include <fstream>
+#include "imfilebrowser.h"
 #define BUFFER_SIZE (1024)
 static char buffer[128] = {0};
 static ImDrawList* draw_list = NULL;
 void drawMain() {
   static MemoryDrawer memoryDrawer;
+  static ImGui::FileBrowser fileDialog;
   draw_list = ImGui::GetWindowDrawList();
   static boolean showMemory= false;
   if(ImGui::BeginMenu("file")) {
@@ -25,9 +27,7 @@ void drawMain() {
   }
   ImGui::NewLine();
   if(ImGui::Button("touch")) {
-    HLOCAL errMsg = getErrorMessage(GetLastError());
-    MessageBox(NULL,reinterpret_cast<PTSTR>(errMsg),TEXT("你好"),MB_OK);
-    freeMessage(errMsg);
+    fileDialog.Open();
   }
   ImGui::InputText("path",buffer,IM_ARRAYSIZE(buffer));
   ImGui::SameLine();
@@ -39,6 +39,12 @@ void drawMain() {
   }
   if(showMemory) {
     memoryDrawer.draw_memory();
+  }
+  fileDialog.Display();
+  if(fileDialog.HasSelected()) {
+    auto selected_path = fileDialog.GetSelected().string();
+    std::memcpy(buffer,selected_path.c_str(),128);
+    fileDialog.ClearSelected();
   }
 }
 bool MemoryDrawer::fresh_memory(char *path) {
@@ -71,13 +77,7 @@ void MemoryDrawer::draw_memory() {
 }
 bool MemoryDrawer::load_memory(char * path) {
     this->data.release();
-    auto m = file_tobuf(path);
-    if(m == NULL) {
-      return false;
-    }else {
-      this->data = *m;
-      return true;
-    }
+    return  file_tobuf(this->data,path);
 }
 MemoryDrawer::~MemoryDrawer() {
   this->data.release();

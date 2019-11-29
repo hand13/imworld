@@ -42,23 +42,22 @@ void freeMessage(HLOCAL msg) {
     LocalFree(msg);
   }
 }
-memory_buffer * file_tobuf(const char * path){
-  auto result = new memory_buffer(0,0);
+bool  file_tobuf(memory_buffer & mem_buf,char * path){
   std::ifstream inf;
   inf.open(path,std::ios::binary);
   if(!inf){
-    delete result;
-    return NULL;
+    return false;
   }
   char buffer[BUFFER_SIZE];
   std::memset(buffer,0,BUFFER_SIZE);
   while(!inf.eof()) {
     int len = inf.read(buffer,BUFFER_SIZE).gcount();
     if(len != 0) {
-      result->inc_buffer(buffer,len);
+      mem_buf.inc_buffer(buffer,len);
     }
   }
-  return result;
+  inf.close();
+  return true;
 }
 
 bool memory_buffer::inc_buffer(void * buffer,int buf_len) {

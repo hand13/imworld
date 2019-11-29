@@ -20,6 +20,6 @@ class memory_buffer{
     void release();
     ~memory_buffer();
 };
-memory_buffer * file_tobuf(const char * path);
+bool file_tobuf(memory_buffer & mem_buffer,char *path);
 char fb_tohex(char m);
 #endif
