@@ -8,14 +8,11 @@
 #include <fstream>
 #define BUFFER_SIZE (1024)
 static char buffer[128] = {0};
-static memory_buffer * mem_buffer = NULL;
-static std::vector<std::shared_ptr<char> > to;
-static std::vector<std::shared_ptr<char> > assemble(memory_buffer * buffer);
-static void load_memory(char * path);
 static ImDrawList* draw_list = NULL;
 void drawMain() {
+  static MemoryDrawer memoryDrawer;
   draw_list = ImGui::GetWindowDrawList();
-  static boolean showfile = false;
+  static boolean showMemory= false;
   if(ImGui::BeginMenu("file")) {
     if(ImGui::MenuItem("open","Ctrl+O")){
       MessageBox(NULL,TEXT("don't touch me"),TEXT("fuck"),MB_OK);
@@ -35,22 +32,31 @@ void drawMain() {
   ImGui::InputText("path",buffer,IM_ARRAYSIZE(buffer));
   ImGui::SameLine();
   if(ImGui::Button("execute")) {
-    if(std::strlen(buffer) != 0) {
-      showfile = true;
-      load_memory(buffer);
-      if(mem_buffer == NULL) {
-        MessageBox(NULL,TEXT("文件不存在"),TEXT("title"),MB_OK);
-        showfile = false;
-      }else {
-        to = assemble(mem_buffer);
-      }
+    showMemory = memoryDrawer.fresh_memory(buffer);
+    if(!showMemory) {
+      MessageBox(NULL,TEXT("文件不存在"),TEXT("error occurs"),MB_OK);
     }
   }
+  if(showMemory) {
+    memoryDrawer.draw_memory();
+  }
+}
+bool MemoryDrawer::fresh_memory(char *path) {
+  bool freshed = false;
+  if(std::strlen(path) != 0) {
+    if(load_memory(path)){
+      this->assemble();
+      freshed= true;
+    }
+  }
+  return freshed;
+}
+void MemoryDrawer::draw_memory() {
   ImGui::NewLine();
-  if(showfile && mem_buffer != NULL) {
+  if(this->data.size()!= 0) {
     ImGui::BeginChild("memory");
     int address = 0;
-    for(auto m = to.begin();m< to.end();m++) {
+    for(auto m = this->assembled_data.begin();m< this->assembled_data.end();m++) {
       //地址
       ImGui::TextColored(ImVec4(1,0,0,1),"%08X",address);
       ImGui::SameLine();
@@ -60,21 +66,27 @@ void drawMain() {
       address += 64;
     }
     ImGui::EndChild();
-    ImGui::Text("file size is %d",mem_buffer->size());
+    ImGui::Text("file size is %d",this->data.size());
   }
 }
-static void load_memory(char * path) {
-    if(mem_buffer != NULL) {
-      delete mem_buffer;
-      mem_buffer = NULL;
+bool MemoryDrawer::load_memory(char * path) {
+    this->data.release();
+    auto m = file_tobuf(path);
+    if(m == NULL) {
+      return false;
+    }else {
+      this->data = *m;
+      return true;
     }
-    mem_buffer = file_tobuf(path);
 }
-std::vector<std::shared_ptr<char> > assemble(memory_buffer * buffer) {
+MemoryDrawer::~MemoryDrawer() {
+  this->data.release();
+}
+void MemoryDrawer::assemble() {
   std::vector<std::shared_ptr<char> > result;
   int cols = 64;
-  int rows = buffer->size()/cols;
-  int more = buffer->size() % cols;
+  int rows = this->data.size()/cols;
+  int more = this->data.size() % cols;
   int cols_size = cols * 2 + 1 + (cols/4);
   for(int i =0;i<rows + 1;i++) {
     std::shared_ptr<char> tmp(new char[cols_size],std::default_delete<char[]>());
@@ -88,7 +100,7 @@ std::vector<std::shared_ptr<char> > assemble(memory_buffer * buffer) {
     }
     int point = 0;
     for(j =0;j<l;j++) {
-      char value = ((unsigned char *)buffer->memory())[i * 20 + j];
+      char value = ((unsigned char *)this->data.memory())[i * 20 + j];
       char fst = fb_tohex((value & 0xf0) >> 4);
       char snd = fb_tohex(value & 0x0f);
       tmp.get()[point] = fst;
@@ -103,5 +115,5 @@ std::vector<std::shared_ptr<char> > assemble(memory_buffer * buffer) {
     tmp.get()[point] = 0;
     result.push_back(tmp);
   }
-  return result;
+  this->assembled_data = result;
 }

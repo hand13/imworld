@@ -73,6 +73,17 @@ bool memory_buffer::inc_buffer(void * buffer,int buf_len) {
   }
   return true;
 }
+memory_buffer::memory_buffer() {
+  this->length = 0;
+  this->buffer_address = NULL;
+}
+void memory_buffer::release() {
+  this->length = 0;
+  if(this->buffer_address != NULL) {
+    std::free(this->buffer_address);
+    this->buffer_address = 0;
+  }
+}
  memory_buffer::memory_buffer(int length,void * add){
   this->length = length;
   this->buffer_address = add;
@@ -84,9 +95,7 @@ void * memory_buffer::memory() {
   return this->buffer_address;
 }
 memory_buffer::~memory_buffer() {
-  if(this->buffer_address != NULL) {
-    std::free(this->buffer_address);
-  }
+  //this->release();
 }
 static const char * hex_table = "0123456789ABCDEF";
 char fb_tohex(char m) {

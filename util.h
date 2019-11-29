@@ -12,10 +12,12 @@ class memory_buffer{
     int length;
     void * buffer_address;
   public:
+    memory_buffer();
     memory_buffer(int len,void * add);
     bool inc_buffer(void * buffer,int len);
     int size();
     void * memory();
+    void release();
     ~memory_buffer();
 };
 memory_buffer * file_tobuf(const char * path);
