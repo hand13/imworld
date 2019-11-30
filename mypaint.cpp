@@ -68,7 +68,7 @@ void MemoryDrawer::draw_memory() {
       ImGui::SameLine();
       //数据
       ImGui::TextColored(ImVec4(0,1,0,1),"%s",m->get());
-      ImGui::NewLine();
+      //ImGui::NewLine();
       address += 64;
     }
     ImGui::EndChild();
