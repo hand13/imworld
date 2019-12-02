@@ -8,7 +8,7 @@ add_library(imgui STATIC imgui.cpp imgui_demo.cpp imgui_draw.cpp
   imgui_widgets.cpp imgui_impl_dx11.cpp imgui_impl_win32.cpp image.cpp )
 add_library(mylua STATIC mylua.cpp)
 add_library(util STATIC util.cpp)
-target_link_libraries(main imgui d3d11 d3dcompiler lua_static mylua fmt util)
+target_link_libraries(main imgui d3d11 d3dcompiler bg lua_static mylua fmt util "libboost_thread-vc141-mt-x32-1_71")
 add_executable(test test.cpp)
 add_library(bg STATIC bg.cpp)
 target_link_libraries(test bg fmt "libboost_thread-vc141-mt-x32-1_71")

@@ -7,13 +7,19 @@
 #include "util.h"
 #include <fstream>
 #include "imfilebrowser.h"
+#include "bg.h"
+#include <boost/thread.hpp>
 #define BUFFER_SIZE (1024)
 static char buffer[128] = {0};
 static ImDrawList* draw_list = NULL;
-void drawMain() {
+auto color = ImColor(ImVec4(1.0f,0.0f,0.0f,1.0f));
+void drawMain(struct Pair * data) {
+  DualBuffer * db = (DualBuffer*)data->fst;
+  boost::mutex * lock = (boost::mutex *)data->snd;
   static MemoryDrawer memoryDrawer;
   static ImGui::FileBrowser fileDialog;
   draw_list = ImGui::GetWindowDrawList();
+  auto v = ImGui::GetCursorStartPos();
   static boolean showMemory= false;
   if(ImGui::BeginMenu("file")) {
     if(ImGui::MenuItem("open","Ctrl+O")){
@@ -36,10 +42,20 @@ void drawMain() {
     if(!showMemory) {
       MessageBox(NULL,TEXT("文件不存在"),TEXT("error occurs"),MB_OK);
     }
-  }
+  }/*
   if(showMemory) {
     memoryDrawer.draw_memory();
+  }*/
+  lock->lock();
+  double * d = (double*)db->getFront();
+  if(d != NULL) {
+    float y = v.y + 200;
+    for(int i =0;i<12;i++) {
+      float x = v.x + i * 15 + 10;
+      draw_list->AddRectFilled(ImVec2(x-10,y - d[i]),ImVec2(x,y),color);
+    }
   }
+  lock->unlock();
   fileDialog.Display();
   if(fileDialog.HasSelected()) {
     auto selected_path = fileDialog.GetSelected().string();

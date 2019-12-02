@@ -9,6 +9,21 @@
 #include <fmt/format.h>
 #include <windows.h>
 #include "mypaint.h"
+#include <boost/thread.hpp>
+#include "bg.h"
+class Runner { 
+  public:
+    DualBuffer * buffer;
+  public:
+    Runner(DualBuffer *m) : buffer(m) { } 
+    void operator()() { 
+      while(true) {
+        buffer->render();
+        buffer->swap();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(40));
+      }
+    } 
+}; 
 #define PI 3.14159
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
@@ -56,6 +71,11 @@ int main(int, char**)
 
     MSG msg;
     ZeroMemory(&msg, sizeof(msg));
+    boost::mutex mutex;
+    BarBuffer db(&mutex);
+    Runner runner(&db);
+    boost::thread t(runner);
+    Pair data = {&db,&mutex};
     while (msg.message != WM_QUIT)
     {
         if (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
@@ -72,7 +92,7 @@ int main(int, char**)
 
         {
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-            drawMain();
+            drawMain(&data);
             ImGui::End();
         }
 

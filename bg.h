@@ -6,15 +6,24 @@
 class DualBuffer{
   private:
     void * front;
-    void * back;
-    std::vector<std::string> words;
-    unsigned int point;
+  protected:
     boost::mutex * mutex;
+    void * back;
   public:
-    DualBuffer(size_t size,boost::mutex * mutex);
-    ~DualBuffer();
+    DualBuffer(boost::mutex * mutex);
+    virtual ~DualBuffer();
     void * getFront();
     void swap();
+    virtual void render() = 0;
+};
+class BarBuffer:public DualBuffer{
+  private:
+    std::vector<double*> data;
+    unsigned int index;
+    bool reversed;
+  public:
+    BarBuffer(boost::mutex * m);
+    virtual ~BarBuffer();
     virtual void render();
 };
 #endif

@@ -2,7 +2,11 @@
 #define MYPAINT_H
 #include <windows.h>
 #include "util.h"
-void drawMain();
+struct Pair{
+  void * fst;
+  void * snd;
+};
+void drawMain(struct Pair * data);
 class MemoryDrawer{
   private:
     memory_buffer  data;
