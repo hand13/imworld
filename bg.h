@@ -4,9 +4,8 @@
 #include <string>
 #include <boost/thread.hpp>
 class DualBuffer{
-  private:
-    void * front;
   protected:
+    void * front;
     boost::mutex * mutex;
     void * back;
   public:
@@ -18,9 +17,7 @@ class DualBuffer{
 };
 class BarBuffer:public DualBuffer{
   private:
-    std::vector<double*> data;
     unsigned int index;
-    bool reversed;
   public:
     BarBuffer(boost::mutex * m);
     virtual ~BarBuffer();

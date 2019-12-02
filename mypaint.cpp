@@ -19,7 +19,7 @@ void drawMain(struct Pair * data) {
   static MemoryDrawer memoryDrawer;
   static ImGui::FileBrowser fileDialog;
   draw_list = ImGui::GetWindowDrawList();
-  auto v = ImGui::GetCursorStartPos();
+  auto v = ImGui::GetCursorScreenPos();
   static boolean showMemory= false;
   if(ImGui::BeginMenu("file")) {
     if(ImGui::MenuItem("open","Ctrl+O")){
@@ -50,9 +50,9 @@ void drawMain(struct Pair * data) {
   double * d = (double*)db->getFront();
   if(d != NULL) {
     float y = v.y + 200;
-    for(int i =0;i<12;i++) {
-      float x = v.x + i * 15 + 10;
-      draw_list->AddRectFilled(ImVec2(x-10,y - d[i]),ImVec2(x,y),color);
+    for(int i =0;i<20;i++) {
+      float x = v.x + i * 30 + 20;
+      draw_list->AddRectFilled(ImVec2(x-20,y - d[i]),ImVec2(x,y),color);
     }
   }
   lock->unlock();
