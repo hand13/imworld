@@ -8,10 +8,10 @@ class Runner {
   public:
     Runner(DualBuffer *m) : buffer(m) { } 
     void operator()() { 
-      for(int i =0;i<10;i++) {
+      for(int i =0;i<100;i++) {
         buffer->render();
         buffer->swap();
-        boost::this_thread::sleep(boost::posix_time::microsec(40));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(300));
       }
     } 
 }; 
@@ -24,7 +24,7 @@ int main() {
     mutex.lock();
     fmt::print("the word is {}\n",(const char *)b.getFront());
     mutex.unlock();
-    boost::this_thread::sleep(boost::posix_time::microsec(15));
+    boost::thread::sleep(boost::get_system_time()+ boost::posix_time::milliseconds(15));
   }
   return 0;
 }
